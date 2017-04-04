@@ -8,6 +8,10 @@ package simplesyllablecounter;
  *
  */
 public class SimpleSyllableCounter {
+	private int totalCount = 0;
+	private State state = null;
+	private int wordLength;
+
 	/**
 	 * Define 6 type of the states.
 	 * 
@@ -37,82 +41,89 @@ public class SimpleSyllableCounter {
 		int syllables = 0;
 		char c;
 		word = word.toLowerCase();
-		State state = State.START; // State is enum of the states
-		for (int i = 0; i < word.length(); i++) {
-			c = word.charAt(i);
-			if (c == '\'' || Character.isWhitespace(c))
-				continue; // ignore apostrophe
-			// process character c using state machine
-			switch (state) {
-			case START:
-				if (isVowelOrY(c)) {
-					state = State.SINGLE_VOWEL;
-					syllables++;
-				} else if (Character.isLetter(c))
-					state = State.CONSONANT;
-				else if (c == '-' || !Character.isLetter(c))
-					state = State.NONWORD;
-				else
-					state = State.HYPHEN;
-				break;
+		wordLength = word.length();
+		if (state == null)
+			state = State.START; // State is enum of the states
 
-			case CONSONANT:
-				if (isVowelOrY(c)) {
-					if (c != 'e' || (i != word.length() - 1) || (syllables == 0)) {
+		if (wordLength > 0) {
+			c = word.charAt(0);
+			if (!(c == '\'' || Character.isWhitespace(c))) { // ignore
+																// apostrophe
+				// process character c using state machine
+				switch (state) {
+				case START:
+					if (isVowelOrY(c)) {
 						state = State.SINGLE_VOWEL;
 						syllables++;
-					}
-				} else if (Character.isLetter(c))
-					/* stay in consonant state */;
-				else if (c == '-')
-					state = State.HYPHEN;
-				else
-					state = State.NONWORD;
-				break;
+					} else if (Character.isLetter(c))
+						state = State.CONSONANT;
+					else if (c == '-' || !Character.isLetter(c))
+						state = State.NONWORD;
+					else
+						state = State.HYPHEN;
+					break;
 
-			case SINGLE_VOWEL:
-				if (isVowel(c)) {
-					state = State.MULTIVOWEL;
-				} else if (Character.isLetter(c))
-					state = State.CONSONANT;
-				else if (c == '-')
-					state = State.HYPHEN;
-				else
-					state = State.NONWORD;
-				break;
+				case CONSONANT:
+					if (isVowelOrY(c)) {
+						if (c != 'e' || (word.length() != 1) || (totalCount == 0)) {
+							state = State.SINGLE_VOWEL;
+							syllables++;
+						}
+					} else if (Character.isLetter(c))
+						/* stay in consonant state */;
+					else if (c == '-')
+						state = State.HYPHEN;
+					else
+						state = State.NONWORD;
+					break;
 
-			case MULTIVOWEL:
-				if (isVowel(c)) {
-					;
-				} else if (Character.isLetter(c))
-					state = State.CONSONANT;
-				else if (c == '-')
-					state = State.HYPHEN;
-				else
-					state = State.NONWORD;
-				break;
+				case SINGLE_VOWEL:
+					if (isVowel(c)) {
+						state = State.MULTIVOWEL;
+					} else if (Character.isLetter(c))
+						state = State.CONSONANT;
+					else if (c == '-')
+						state = State.HYPHEN;
+					else
+						state = State.NONWORD;
+					break;
 
-			case HYPHEN:
-				if (isVowelOrY(c)) {
-					if (c != 'e' || (i != word.length() - 1) || (syllables == 0)) {
-						state = State.SINGLE_VOWEL;
-						syllables++;
-					}
-				} else if (Character.isLetter(c))
-					state = State.CONSONANT;
-				else
-					state = State.NONWORD;
-				break;
+				case MULTIVOWEL:
+					if (isVowel(c)) {
+						;
+					} else if (Character.isLetter(c))
+						state = State.CONSONANT;
+					else if (c == '-')
+						state = State.HYPHEN;
+					else
+						state = State.NONWORD;
+					break;
 
-			case NONWORD:
-				i = word.length(); // end checking this word
-				break;
+				case HYPHEN:
+					if (isVowelOrY(c)) {
+						if (c != 'e' || (word.length() != 1) || (totalCount == 0)) {
+							state = State.SINGLE_VOWEL;
+							syllables++;
+						}
+					} else if (Character.isLetter(c))
+						state = State.CONSONANT;
+					else
+						state = State.NONWORD;
+					break;
 
-			default:
-				break;
+				case NONWORD:
+					syllables = (-1)*totalCount;// end checking this word
+					break;
+
+				default:
+					break;
+				}
 			}
+			totalCount += syllables;
+			return syllables + countSyllables(word.substring(1));
 		}
-
+		state = State.START;
+		totalCount = 0;
 		return syllables;
 	}
 

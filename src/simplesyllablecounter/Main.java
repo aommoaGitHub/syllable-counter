@@ -61,13 +61,16 @@ public class Main {
 		stopwatch.start();
 		List<String> words = readLine();
 		SimpleSyllableCounter counter = new SimpleSyllableCounter();
+		int countWord = 0;
 		int totalSyllables = 0;
 		for (String word : words) {
-			totalSyllables  += counter.countSyllables(word);
+			int currentSyllable = counter.countSyllables(word);
+			totalSyllables  += currentSyllable;
+			if(currentSyllable > 0) countWord++;
 		}
 		stopwatch.stop();
 		System.out.println("Reading words from "+ DICT_URL);
-		System.out.println("Counted "+totalSyllables+" syllables in "+words.size()+" words");
+		System.out.println("Counted "+totalSyllables+" syllables in "+countWord+" words");
 		System.out.printf("Elapsed times: %.3f sec",stopwatch.getElapsed());
 
 	}

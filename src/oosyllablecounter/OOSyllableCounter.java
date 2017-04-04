@@ -1,7 +1,8 @@
 package oosyllablecounter;
 
 /**
- * receive a word and count its syllables using 6 states as inner classes below (the OO approach)
+ * receive a word and count its syllables using 6 states as inner classes below
+ * (the OO approach)
  * 
  * @author Vittunyuta Maeprasart
  *
@@ -13,11 +14,11 @@ public class OOSyllableCounter {
 	private final State MULTIVOWEL = new MultiVowelState();
 	private final State HYPHEN = new HyphenState();
 	private final State NONWORD = new NonwordState();
-	private int index = 0;
 	private int wordLength = 0;
 
-	private State state;
+	private State state = null;
 	private int syllableCount = 0;
+	private int totalCount = 0;
 
 	/**
 	 * change to a new state
@@ -41,17 +42,18 @@ public class OOSyllableCounter {
 		char c;
 		word = word.toLowerCase();
 		wordLength = word.length();
-		setState(START);
-		for (int i = 0; i < wordLength; i++) {
-			c = word.charAt(i);
-			index = i;
-			if (c == '\'' || Character.isWhitespace(c))
-				continue; // ignore apostrophe
-			// process character c using state machine
-			state.handleChar(c);
-			if (state == NONWORD)
-				break;
+		if (state == null)
+			setState(START);
+
+		if (word.length() > 0) {
+			c = word.charAt(0);
+			if (!(c == '\'' || Character.isWhitespace(c))) // ignore apostrophe
+				state.handleChar(c);
+			totalCount += syllableCount;
+			return syllableCount + countSyllables(word.substring(1));
 		}
+		setState(START);
+		totalCount = 0;
 		return syllableCount;
 	}
 
@@ -103,7 +105,7 @@ public class OOSyllableCounter {
 		@Override
 		public void handleChar(char c) {
 			if (isVowelOrY(c)) {
-				if (c != 'e' || (index != wordLength - 1) || (syllableCount == 0)) {
+				if (c != 'e' || (wordLength != 1) || (totalCount == 0)) {
 					setState(SINGLE_VOWEL);
 					enterState();
 				}
@@ -125,8 +127,8 @@ public class OOSyllableCounter {
 
 	/**
 	 * Single_vowel state<br>
-	 * is for the most recent character is a vowel, including 'y', that is the first
-	 * vowel in a vowel group.
+	 * is for the most recent character is a vowel, including 'y', that is the
+	 * first vowel in a vowel group.
 	 * 
 	 * @author Vittunyuta Maeprasart
 	 *
@@ -159,7 +161,7 @@ public class OOSyllableCounter {
 	 *
 	 */
 	class MultiVowelState extends State {
-		
+
 		/*
 		 * @see oosyllablecounter.State#handleChar(char)
 		 */
@@ -193,7 +195,7 @@ public class OOSyllableCounter {
 		@Override
 		public void handleChar(char c) {
 			if (isVowelOrY(c)) {
-				if (c != 'e' || (index != wordLength - 1) || (syllableCount == 0)) {
+				if (c != 'e' || (wordLength != 1) || (totalCount == 0)) {
 					setState(SINGLE_VOWEL);
 					enterState();
 				}
@@ -234,7 +236,7 @@ public class OOSyllableCounter {
 		 * @see oosyllablecounter.State#enterState()
 		 */
 		public void enterState() {
-			syllableCount = 0;
+			syllableCount = (-1)*totalCount;
 		}
 	}
 
